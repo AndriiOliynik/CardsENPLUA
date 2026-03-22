@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Quiz App Pro - Mobile Ready</title>
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            display: flex; flex-direction: column; align-items: center; 
+            margin: 0; padding: 10px 5px 80px 5px; 
+            background-color: #fcfcfc;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        #questionContainer { 
+            width: 100%; 
+            max-width: 500px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            min-height: 60px; /* Зарезервоване місце для питання */
+        }
+        
+        h3 { 
+            text-align: center; 
+            padding: 0 10px; 
+            font-size: 19px; 
+            width: 100%;
+            box-sizing: border-box;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            hyphens: auto;
+            line-height: 1.3;
+            margin: 15px 0;
+        }
+
+        button { 
+            margin: 5px 2px; padding: 10px 12px; border: none; border-radius: 10px; 
+            cursor: pointer; font-weight: bold; font-size: 15px; transition: 0.2s; 
+            touch-action: manipulation; 
+        }
+        
+        button.answerBtn { 
+            background-color: #e0e0e0; 
+            width: 95%; 
+            max-width: 380px; 
+            min-height: 50px; 
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            padding: 10px;
+        }
+
+        .mode-btn { background-color: #fff; border: 1px solid #ddd; font-size: 13px; padding: 6px 10px; }
+        .ctrl-btn { font-size: 11px !important; padding: 6px 8px !important; margin: 2px !important; flex: 1; max-width: fit-content; }
+
+        input[type="text"] { 
+            padding: 12px; font-size: 18px; border-radius: 10px; border: 2px solid #ccc; 
+            width: 90%; max-width: 320px; outline: none; margin: 10px 0; text-align: center;
+        }
+
+        .letter-pool { 
+            display: flex; flex-wrap: wrap; justify-content: center; 
+            gap: 4px; margin-top: 10px; width: 100%; max-width: 420px; 
+        }
+        .letter-btn { 
+            background: #8e24aa; color: white; 
+            flex: 0 1 calc(16% - 4px); 
+            aspect-ratio: 1/1; min-width: 38px; max-width: 50px;
+            padding: 0; font-size: 20px; border-radius: 8px; 
+            display: flex; align-items: center; justify-content: center; 
+            border: 2px solid black !important;
+            box-shadow: 0 3px 0px #4a148c;
+            text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+        }
+        .letter-btn.space-btn {
+            background: rgba(255,255,255,0.5); border: 2px dashed black !important;
+            box-shadow: 0 3px 0px #999; text-shadow: none;
+        }
+        .letter-btn.wrong-letter {
+            background: #d32f2f !important;
+            box-shadow: 0 3px 0px #b71c1c !important;
+        }
+
+        .card-scene { width: 95%; max-width: 350px; height: 200px; perspective: 1000px; margin: 15px 0; }
+        .card { width: 100%; height: 100%; position: relative; transition: transform 0.6s; transform-style: preserve-3d; }
+        .card.is-flipped { transform: rotateY(180deg); }
+        .card__face {
+            position: absolute; width: 100%; height: 100%; backface-visibility: hidden;
+            display: flex; align-items: center; justify-content: center;
+            font-size: clamp(16px, 5vw, 22px); font-weight: bold; border-radius: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 3px solid #4CAF50;
+            padding: 15px; text-align: center; background: white; box-sizing: border-box;
+            overflow-wrap: break-word;
+        }
+        .card__face--back { background: #f0f7f0; transform: rotateY(180deg); border-color: #2196F3; }
+
+        .error-hint { 
+            background: #ffebee; padding: 12px; border-radius: 12px; margin-top: 10px; 
+            font-size: 15px; text-align: center; font-weight: bold; 
+            border: 2px solid #d32f2f; width: 95%; max-width: 350px;
+            word-wrap: break-word;
+        }
+
+        .txt-red { color: #d32f2f; }
+        .txt-black { color: black; }
+        .txt-purple { color: #8e24aa; text-decoration: underline; }
+
+        .nav-controls { margin-top: 15px; display: flex; gap: 10px; width: 100%; justify-content: center; }
+        
+        .settings-panel { 
+            font-size: 13px; background: #fff; padding: 15px; border-radius: 15px; 
+            width: 95%; max-width: 360px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-top: 20px; box-sizing: border-box;
+        }
+        .slider-val { font-weight: bold; color: #2c3e50; float: right; }
+        select { padding: 6px; border-radius: 5px; width: 100%; margin-top: 5px; }
+        input[type="range"] { width: 100%; margin: 8px 0; }
+
+        #score { font-size: 16px; font-weight: bold; margin: 10px; text-align: center; }
+        
+        .lang-toggle {
+            background: #333; color: white; padding: 4px 8px; border-radius: 6px; font-size: 11px;
+            margin-bottom: 5px; display: inline-block;
+        }
+
+        #balloonStage {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            height: 450px;
+            background: #e3f2fd;
+            border-radius: 20px;
+            overflow: hidden;
+            display: none;
+            border: 2px solid #bbdefb;
+            margin-top: 10px;
+        }
+
+        .balloon {
+            position: absolute;
+            width: 85px;
+            height: 105px;
+            border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            text-align: center;
+            padding: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: inset -5px -10px rgba(0,0,0,0.15);
+            box-sizing: border-box;
+            z-index: 10;
+            text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+            white-space: normal;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            line-height: 1.1;
+        }
+
+        @keyframes pop {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.4); opacity: 0.5; }
+            100% { transform: scale(0); opacity: 0; }
+        }
+        .popped { animation: pop 0.3s forwards; pointer-events: none; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+        .wrong-shake { animation: shake 0.3s; background: #555 !important; }
+
+    </style>
+    <script>
+        // --- ДАНІ СЛОВНИКА ---
+        const rawVocabulary = `appearance;wygląd;зовнішність
+bald;łysy;лисий
+beard;broda;борода
+beauty;piękno, uroda;краса
+blond hair;blond włosy;світле волосся
+broad shouldered;barczysty;широкоплечий
+build;budowa ciała;статура
+bunches;pęczki;хвостики (зачіска)
+clean-shaven;gładko ogolony;гладко поголений
+complexion;cera;колір обличчя
+dark-haired;ciemnowłosy;темноволосий
+dark-skinned;ciemnoskóry;темношкірий
+designer glasses;okulary;дизайнерські окуляри
+dimples;dołeczki;ямочки (на щоках)
+elderly;starszy;літній / похилого віку
+facial hair;zarost;рослинність на обличчі
+fair hair;jasne włosy;світле / русяве волосся
+features;rysy twarzy;риси обличчя
+freckles;piegi;ластовиння
+good-looking;przystojny;привабливий
+gorgeuos;przepiękny;розкішний / чудовий
+grey hair;popielate włosy;сиве волосся
+handsome;przystojny;красивий (про чоловіка)
+height;wysokość;зріст
+high forhead;wysoki czoło;високе чоло
+hollow-cheeked;pusty policzek;із запалими щоками
+image;obraz / wizerunek;образ / імідж
+moustache;wąsy;вуса
+muscular;muskularny;м'язистий
+overweight;z nadwagą;з надмірною вагою
+pale;blady;блідий
+piercing;przeszywający;пірсинг
+plain;przeciętny;простий / непоказний
+plump;puszysty / pulchny;повненький
+ponytail;koński ogon;кінський хвіст
+scar;blizna;шрам
+scarred;pokryty bliznami;у шрамах
+short;niski;низький / короткий
+short-haired;krótkowłosy;короткошерстий / коротковолосий
+shoulder-length;do ramion;довжиною до плечей
+skinny;bardzo chudy;дуже худий
+slim;szczupły;стрункий
+spots;krosty;прищі / плями
+spotty;łaciaty;прищавий
+straight;proste;прямий
+stubble;kilkudniowy zarost;щетина
+tallish;wysoki;досить високий
+tanned;opalony;засмаглий
+tattoo;tatuaż;татуювання
+tubby;baryłkowaty;огрядний / пухкий
+ugly;brzydki;потворний
+wavy hair;falowane włosy;хвилясте волосся
+wear braces;nosić szelki;носити брекети
+wear lipstick;nosić szminkę;користуватися помадою
+well-built;dobrze zbudowany;добре складений
+wrinkled;pomarszczony;зморшкуватий
+wrinkles;zmarszczki;зморшки
+youngish;dość młody;молодуватий
+fashion designer;projektant mody;модельєр
+persuade sb;przekonać kogoś;переконувати когось
+pop-up advert;wyskakująca reklama;спливаюча реклама
+smell;zapach;пахнути / запах
+wolly jumper;wilczy sweter;вовняний джемпер
+airbrushing;retuszowanie zdjęć;ретушування (фото)
+bracelet;bransoletka;браслет
+casual;nieformalny;повсякденний
+cotton suit;bawełniany garnitur;бавовняний костюм
+designer dress;designerska sukienka;дизайнерська сукня
+elegant;elegancki;елегантний
+fashion show;pokaz mody;показ мод
+high-heeled shoes;buty na wysokich obcasach;туфлі на високих підборах
+hole;dziura, otwór;дірка / отвір
+knee-lenght skirt;spódnica do kolan;спідниця до колін
+open-toed sandals;sandały z odkrytymi palcami;босоніжки з відкритим носком
+scruffy;nieporządny, niechlujny;неохайний
+skinny jeans;rurki;вузькі джинси (скіні)
+smart;bystry;охайний / елегантний
+striped shirt;koszula w paski;сорочка в смужку
+stuff;rzeczy;речі / мотлох
+the red carpet;czerwony dywan;червона доріжка
+tie;krawat;краватка
+tight-fitting jacket;obcisła kurtka;облягаючий жакет
+tights;rajstopy;колготки
+tight;obcisły;вузький / тісний
+trendy;modny;модний
+V-neck jumper;Sweter z dekoltem w szpic;джемпер з V-подібним вирізом
+wardrobe;szafa;гардероб
+fancy doing sth;fantazyjne robienie czegoś;хотіти щось зробити
+fashion model;modelka;фотомодель
+get tired of sth;znudzi się czymś;втомлюватися від чогось
+offer to do sth;zaoferować zrobienie czegoś;пропонувати щось зробити
+prevent sb from doing sth;uniemożliwić komuś zrobienie czegoś;заважати комусь щось робити
+prevent sb from doing sth;uniemożliwić komuś zrobienie czegoś;перешкоджати комусь
+warn sb not to do sth;ostrzegać kogoś, aby nie robić czegoś;попереджати когось не робити чогось
+absolutely;absolutnie;абсолютно
+boiling;wrzący;дуже спекотно
+boycott;bojkot;бойкот
+break down in tears;wybuchać płaczem;розридатися
+care about the idea of sth;dbać o pomysł czegoś;перейматися ідеєю чогось
+chain store;sklep sieciowy;мережевий магазин
+clothing companes;firmy odzieżowe;компанії з виробництва одягу
+concrete;beton;бетон
+delicious;pyszny;дуже смачний
+delighted;zachwycony;захоплений
+devastated;zniszczony;спустошений
+die of hunger;umrzeć z głodu;помирати з голоду
+employ;zatrudniać;наймати
+exhausted;wyczerpany;виснажений
+exploit;wykorzystać;експлуатувати
+extremely;bardzo / ekstremalnie;надзвичайно
+fair trade;sprawiedliwy handel;справедлива торгівля
+fascinating;fascynujący;захоплюючий
+fashion industry;przemysł mody;індустрія моди
+filthy;obrzydliwy;дуже брудний
+grateful;wdzięczny;вдячний
+horrified;przerażony;нажаханий
+huge;ogromny;величезний
+inhumane;niehumanitarny;нелюдський
+lead;1. ołów 2. smycz;вести (за собою) / олово
+a miserable life;żałosne życie;жалюгідне життя
+make profit;zarabiać;отримувати прибуток
+miserable;biedny / nieszczęśliwy / załamany;нещасний / жалюгідний
+pay a high price;zapłacić wysoką cenę;платити високу ціну
+sleepless night;bezsenna noc;безсонна ніч
+starving;głodujący;дуже голодний
+sweatshop;Sweatshop;потогонне виробництво
+take action against sth;podjąć działania przeciwko czemuś;вживати заходів проти чогось
+terrified;przerażony;наляканий
+underage;niepełnoletni;неповнолітній
+unethical;nieetyczny;неетичний
+working conditions;warunki pracy;умови праці
+appealing;pociągający;привабливий
+have an argument;mieć argument;сперечатися / сваритися
+stressed out;zestresowany;виснажений стресом
+bright colours;jasne kolory;яскраві кольори
+come across as;natknąć się na;здаватися / справляти враження
+ginger hair;rude włosy;руде волосся
+have fantastic taste in clothes;mają fantastyczny gust w ubraniach;мати чудовий смак в одязі
+incredibly;niesłychanie;неймовірно
+outfit;ubiór / strój;вбрання / одяг
+outgoing;otwarty / towarzyski;товариський
+square;plac;площа / квадратний
+associated with;związany z;пов'язаний з
+curly hair;kręcone włosy;кучеряве волосся
+easygoing;Na luzie;легкий у спілкуванні
+flowery;ukwiecony;у квіточку
+fringe;grzywka;чубчик
+give the impression;sprawiać wrażenie;справляти враження
+hairstyle;fryzura;зачіска
+medium-lenght hair;włosy średniej długości;волосся середньої довжини
+neat;schludny;охайний
+open-minded;o szerokich horyzontach;відкритий до нового
+self-confident;pewny siebie;впевнений у собі
+shade;cień;відтінок / тінь
+texture;tekstura;текстура
+wear makeup;nosić makijaż;користуватися косметикою
+be down to common sense;kierować się zdrowym rozsądkiem;залежати від здорового глузду
+dye your hair blond;ufarbuj włosy na blond;пофарбувати волосся у блонд
+grow a moustache;zapuścić wąsy;відростити вуса
+have influence on sb;mieć wpływ na kogoś;мати вплив на когось
+have your lip pierced;przebij swoją wargę;проколоти губу
+paint your nails red;pomaluj paznokcie na czerwono;нафарбувати нігті червоним
+put on your make-up;nałóż makijaż;наносити макіяж
+send out the wrong message;wyślij niewłaściwą wiadomość;давати хибний сигнал
+shave off your beard;ogol brodę;зголити бороду
+staighten your hair;wyprostuj włosy;випрямляти волосся
+tell the difference;powiedz różnicę;бачити різницю
+wear contant lenses;nosić soczewki kontaktowe;носити контактні лінзи`;
+        let activeDictPair = 'en-pl';
+        // --- КІНЕЦЬ ДАНИХ СЛОВНИКА ---
+
+        let questions = [];
+        let currentQuestionIndex = -1;
+        let score = 0;
+        let scoreError = 0;
+        let voices = [];
+        let selectedVoiceIndex = 0;
+        let speechRate = 1;
+        let QRate = 3500;
+        let swapped = false;
+        let inputMode = false;
+        let builderMode = false;
+        let timer = null;
+        let timeLeft = 60;
+        let currentMode = 'standard';
+        let builderCurrentIndex = 0;
+        let builderWrongCount = 0;
+        let currentLang = 'pl';
+        let balloonIntervals = [];
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playClickSound(type = 'correct') {
+            const osc = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            osc.connect(g); g.connect(audioCtx.destination);
+            osc.frequency.setValueAtTime(type === 'correct' ? 600 : 150, audioCtx.currentTime);
+            g.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+        }
+
+        // Змінено лише підтримку української мови для фільтрації
+        function populateVoices() {
+            voices = window.speechSynthesis.getVoices();
+            const voiceSelect = document.getElementById('voiceSelect');
+            if (!voiceSelect) return;
+            voiceSelect.innerHTML = '';
+            let filtered = voices.filter(v => v.lang.toLowerCase().includes(currentLang));
+            filtered.sort((a, b) => a.name.toLowerCase().includes('google') ? -1 : 1);
+            filtered.forEach((v) => {
+                const opt = document.createElement('option');
+                opt.value = voices.indexOf(v);
+                opt.textContent = `${v.name} (${v.lang})`;
+                voiceSelect.appendChild(opt);
+            });
+            if (filtered.length > 0) {
+                selectedVoiceIndex = voices.indexOf(filtered[0]);
+                voiceSelect.value = selectedVoiceIndex;
+            }
+        }
+        window.speechSynthesis.onvoiceschanged = populateVoices;
+
+        // Змінено лише для правильного перемикання обраної мовної пари
+        function toggleLang() {
+            if (activeDictPair === 'en-pl') currentLang = (currentLang === 'pl' ? 'en' : 'pl');
+            else if (activeDictPair === 'en-uk') currentLang = (currentLang === 'uk' ? 'en' : 'uk');
+            else if (activeDictPair === 'pl-uk') currentLang = (currentLang === 'uk' ? 'pl' : 'uk');
+            else currentLang = (currentLang === 'pl' ? 'en' : 'pl'); // Fallback
+
+            document.getElementById('langBtn').innerText = currentLang.toUpperCase();
+            populateVoices();
+        }
+
+        // Змінено лише додавання uk-UA для української озвучки
+        function speakText(text) {
+            if (!text) return;
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            if (voices[selectedVoiceIndex]) utterance.voice = voices[selectedVoiceIndex];
+            
+            if (currentLang === 'pl') utterance.lang = 'pl-PL';
+            else if (currentLang === 'uk') utterance.lang = 'uk-UA';
+            else utterance.lang = 'en-US';
+
+            utterance.rate = speechRate;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function normalize(str) {
+            if(!str) return "";
+            return str.toLowerCase()
+                .replace(/[’'‘`]/g, "'") 
+                .replace(/[.,\/#!$%\^&\*;:{}=\-_~()"?]/g, "") 
+                .replace(/\s+/g, " ")
+                .trim();
+        }
+
+        function loadQuestionsFromTxt(file) {
+            file.text().then(text => {
+                questions = text.trim().split('\n').filter(l => l.includes(';') || l.includes('/')).map(line => {
+                    let delimiter = line.includes(';') ? ';' : '/';
+                    const parts = line.split(delimiter);
+                    return { word: parts[0].trim(), translation: parts[1].trim() };
+                });
+                document.querySelectorAll('.mode-btn').forEach(b => b.disabled = false);
+                resetAllInternal();
+            });
+        }
+
+        function clearBalloons() {
+            balloonIntervals.forEach(clearInterval);
+            balloonIntervals = [];
+            const stage = document.getElementById('balloonStage');
+            if(stage) stage.innerHTML = '';
+        }
+
+        function spawnBalloons(correctAnswer) {
+            clearBalloons();
+            const stage = document.getElementById('balloonStage');
+            let opts = [correctAnswer];
+            while(opts.length < 4 && opts.length < questions.length) {
+                let r = swapped ? questions[Math.floor(Math.random()*questions.length)].word : questions[Math.floor(Math.random()*questions.length)].translation;
+                if(!opts.includes(r)) opts.push(r);
+            }
+            opts.sort(() => Math.random() - 0.5);
+
+            const laneWidth = stage.offsetWidth / 4;
+
+            opts.forEach((text, i) => {
+                const b = document.createElement('div');
+                b.className = 'balloon';
+                b.innerText = text;
+                const laneX = (i * laneWidth) + (laneWidth - 85) / 2 + (Math.random() * 10 - 5);
+                b.style.left = laneX + 'px';
+                b.style.top = '-120px';
+                b.style.background = `hsl(${(i * 90) + Math.random()*30}, 70%, 55%)`;
+                
+                b.onclick = () => {
+                    if (normalize(text) === normalize(correctAnswer)) {
+                        playClickSound('correct');
+                        speakText(correctAnswer);
+                        score++; updateScore();
+                        b.classList.add('popped');
+                        setTimeout(nextQ, 350);
+                    } else {
+                        playClickSound('wrong');
+                        scoreError++; updateScore();
+                        b.classList.add('wrong-shake');
+                        setTimeout(() => b.classList.remove('wrong-shake'), 300);
+                    }
+                };
+                stage.appendChild(b);
+
+                let currentTop = -120;
+                let speed = (0.3 + (1500 / QRate)) * (0.8 + Math.random() * 0.4);
+                let delay = Math.random() * 2000;
+
+                setTimeout(() => {
+                    let move = setInterval(() => {
+                        currentTop += speed;
+                        b.style.top = currentTop + 'px';
+                        if (currentTop > stage.offsetHeight) {
+                            if (normalize(text) === normalize(correctAnswer)) nextQ();
+                            b.remove();
+                            clearInterval(move);
+                        }
+                    }, 25);
+                    balloonIntervals.push(move);
+                }, delay);
+            });
+        }
+
+        function setMode(mode, hasTimer = false) {
+            resetAllInternal();
+            currentMode = mode;
+            builderMode = (mode === 'wordBuilder');
+            document.getElementById('balloonStage').style.display = (mode === 'balloons') ? 'block' : 'none';
+            if (hasTimer) {
+                timeLeft = 60;
+                document.getElementById('timerDisplay').style.display = 'block';
+                timer = setInterval(() => {
+                    timeLeft--;
+                    document.getElementById('timerDisplay').innerText = "Час: " + timeLeft;
+                    if (timeLeft <= 0) { clearInterval(timer); alert("Час вийшов!"); resetAllInternal(); }
+                }, 1000);
+            }
+            nextQ();
+        }
+
+        function displayQuestion() {
+            const container = document.getElementById('questionContainer');
+            if (!questions.length || currentQuestionIndex < 0) return;
+            if (currentQuestionIndex >= questions.length) {
+                container.innerHTML = `<h3>Кінець! ✅</h3><button onclick="resetAllInternal(); nextQ()">Знову</button>`;
+                clearBalloons();
+                return;
+            }
+            const q = questions[currentQuestionIndex];
+            const qText = swapped ? q.translation : q.word; 
+            const aText = swapped ? q.word : q.translation; 
+            const isHintActive = document.getElementById('hintToggle')?.checked;
+            
+            if (!swapped && currentMode !== 'fillGaps' && !builderMode) speakText(q.word);
+            
+            let contentHtml = `<h3>${qText}</h3>`;
+            
+            if (currentMode === 'balloons') {
+                container.innerHTML = contentHtml;
+                spawnBalloons(aText);
+            } else if (builderMode || currentMode === 'wordBuilder') {
+                builderCurrentIndex = 0; builderWrongCount = 0;
+                const target = aText;
+                const letters = target.split('').sort(() => Math.random() - 0.5);
+                contentHtml = `<h3>${qText}</h3><input type="text" id="userInput" readonly placeholder="${isHintActive ? target : ''}"><div class="letter-pool"></div>`;
+                container.innerHTML = contentHtml;
+                const pool = container.querySelector('.letter-pool');
+                letters.forEach(l => {
+                    const btn = document.createElement('button');
+                    btn.className = `letter-btn ${l===' '?'space-btn':''}`;
+                    btn.innerText = l===' '?'␣':l;
+                    btn.onclick = () => handleLetterClick(btn, l, target);
+                    pool.appendChild(btn);
+                });
+            } else if (currentMode === 'fillGaps') {
+                const targetWord = swapped ? q.word : q.translation;
+                const questionWord = swapped ? q.translation : q.word;
+                contentHtml = `<h3>${questionWord}</h3><div style="font-size:22px; letter-spacing:3px; margin:10px; font-family:monospace; text-align:center;">${getWordWithMissingChars(targetWord)}</div><input type="text" id="userInput" autofocus autocomplete="off" placeholder="${isHintActive ? targetWord : '...'}" onkeypress="if(event.key==='Enter') checkInput('${targetWord.replace(/'/g, "\\'")}')"><button style="background:#4CAF50; color:white;" id="actionBtn" onclick="checkInput('${targetWord.replace(/'/g, "\\'")}')">Ок</button>`;
+                container.innerHTML = contentHtml;
+            } else if (currentMode === 'flashcard') {
+                contentHtml = `<div class="card-scene"><div class="card" onclick="this.classList.toggle('is-flipped'); if(this.classList.contains('is-flipped') && swapped) speakText('${aText.replace(/'/g, "\\'")}')"><div class="card__face card__face--front">${qText}</div><div class="card__face card__face--back">${aText}</div></div></div>`;
+                container.innerHTML = contentHtml;
+            } else if (currentMode === 'trueFalse') {
+                const isCorrect = Math.random() > 0.5;
+                const displayA = isCorrect ? aText : (swapped ? questions[Math.floor(Math.random()*questions.length)].word : questions[Math.floor(Math.random()*questions.length)].translation);
+                contentHtml = `<h3>${qText} = ${displayA}?</h3><button class="answerBtn" onclick="checkTF(this, ${isCorrect}, true, '${aText.replace(/'/g, "\\'")}')">Правда</button><button class="answerBtn" onclick="checkTF(this, ${isCorrect}, false, '${aText.replace(/'/g, "\\'")}')">Неправда</button>`;
+                container.innerHTML = contentHtml;
+            } else {
+                if (inputMode) {
+                    contentHtml += `<input type="text" id="userInput" autofocus autocomplete="off" placeholder="${isHintActive ? aText : '...'}" onkeypress="if(event.key==='Enter') checkInput('${aText.replace(/'/g, "\\'")}')"><button style="background:#4CAF50; color:white;" id="actionBtn" onclick="checkInput('${aText.replace(/'/g, "\\'")}')">Ок</button>`;
+                } else {
+                    let opts = [aText];
+                    while(opts.length < 4 && opts.length < questions.length) {
+                        let r = swapped ? questions[Math.floor(Math.random()*questions.length)].word : questions[Math.floor(Math.random()*questions.length)].translation;
+                        if(!opts.includes(r)) opts.push(r);
+                    }
+                    opts.sort(() => Math.random() - 0.5).forEach(o => { 
+                        contentHtml += `<button class="answerBtn" onclick="checkBtn(this, '${aText.replace(/'/g, "\\'")}')">${o}</button>`; 
+                    });
+                }
+                container.innerHTML = contentHtml;
+            }
+
+            const feedbackDiv = document.createElement('div');
+            feedbackDiv.id = 'feedback';
+            container.appendChild(feedbackDiv);
+
+            const navHtml = document.createElement('div');
+            navHtml.className = 'nav-controls';
+            navHtml.innerHTML = `<button onclick="prevQ()">⬅</button><button onclick="nextQ()">➡</button>`;
+            if (!(currentMode.includes('sprint') || currentMode === 'balloons')) {
+                container.appendChild(navHtml);
+            }
+
+            updateScore();
+            if ((inputMode || currentMode === 'fillGaps') && !builderMode) setTimeout(() => document.getElementById('userInput')?.focus(), 100);
+        }
+
+        function handleLetterClick(btn, char, target) {
+            const display = document.getElementById('userInput');
+            if (btn.classList.contains('wrong-letter')) return;
+
+            const simplify = (s) => s.toLowerCase().replace(/[’'‘`]/g, "'");
+            let targetChar = target[builderCurrentIndex];
+
+            if (simplify(char) === simplify(targetChar)) {
+                playClickSound('correct');
+                display.value += targetChar;
+                builderCurrentIndex++;
+                btn.style.visibility = 'hidden';
+                document.querySelectorAll('.letter-btn').forEach(b => b.classList.remove('wrong-letter'));
+                if (builderCurrentIndex >= target.length) {
+                    score++; updateScore(); speakText(target); setTimeout(nextQ, 800);
+                }
+            } else {
+                playClickSound('wrong');
+                btn.classList.add('wrong-letter');
+                builderWrongCount++; scoreError++; updateScore();
+                if (builderWrongCount >= 3) {
+                    document.getElementById('feedback').innerHTML = getColoredError(target);
+                    speakText(target);
+                }
+            }
+        }
+
+        function checkInput(correct) {
+            const input = document.getElementById('userInput');
+            if (normalize(input.value) === normalize(correct)) {
+                input.style.backgroundColor = "#2e7d32"; input.style.color = "white";
+                score++; updateScore(); speakText(correct);
+                setTimeout(nextQ, 1000);
+            } else {
+                input.style.backgroundColor = "#d32f2f"; input.style.color = "white";
+                document.getElementById('feedback').innerHTML = getColoredError(correct);
+                scoreError++; updateScore(); speakText(correct);
+                document.getElementById('actionBtn').innerText = "Далі"; 
+                document.getElementById('actionBtn').onclick = nextQ;
+            }
+        }
+
+        function checkTF(btn, isCorrect, userChoice, correctText) {
+            if (isCorrect === userChoice) { 
+                btn.style.backgroundColor = "#2e7d32"; btn.style.color = "white";
+                score++; setTimeout(nextQ, 800); 
+            } else { 
+                btn.style.backgroundColor = "#d32f2f"; btn.style.color = "white";
+                document.getElementById('feedback').innerHTML = getColoredError(correctText) + `<button onclick="nextQ()" style="margin-top:10px; background:#555; color:white; width:80%;">Далі</button>`;
+                scoreError++; updateScore();
+            }
+            if (swapped) speakText(correctText);
+        }
+
+        function checkBtn(btn, correct) {
+            if (normalize(btn.innerText) === normalize(correct)) { 
+                btn.style.backgroundColor = "#2e7d32"; btn.style.color = "white";
+                score++; setTimeout(nextQ, currentMode === 'sprint' ? 400 : QRate/4); 
+            } else { 
+                btn.style.backgroundColor = "#d32f2f"; btn.style.color = "white";
+                document.getElementById('feedback').innerHTML = getColoredError(correct) + `<button onclick="nextQ()" style="margin-top:10px; background:#555; color:white; width:80%;">Далі</button>`;
+                scoreError++; updateScore();
+            }
+            if (swapped) speakText(correct);
+        }
+
+        function nextQ() { currentQuestionIndex++; displayQuestion(); }
+        function prevQ() { if(currentQuestionIndex > 0) { currentQuestionIndex--; displayQuestion(); } }
+        
+        function resetAllInternal() {
+            clearInterval(timer); window.speechSynthesis.cancel();
+            clearBalloons();
+            currentQuestionIndex = -1; score = 0; scoreError = 0;
+            document.getElementById('timerDisplay').style.display = 'none';
+            document.getElementById('balloonStage').style.display = 'none';
+            document.getElementById('questionContainer').innerHTML = ''; 
+            updateScore();
+        }
+
+        function toggleBuilderMode() { builderMode = !builderMode; displayQuestion(); }
+        function toggleInputMode() { builderMode = false; inputMode = !inputMode; displayQuestion(); }
+        function updateScore() { 
+            const total = questions.length || 0;
+            const current = (currentQuestionIndex === -1) ? 0 : (currentQuestionIndex + 1);
+            document.getElementById('score').innerHTML = `✅ ${score} | ❌ <span style="color:red">${scoreError}</span><br><small>Питання: ${current}/${total}</small>`; 
+        }
+        function getWordWithMissingChars(word) {
+            let result = word.split('');
+            let countToHide = Math.max(1, Math.ceil(word.length * 0.3));
+            let indices = [];
+            while(indices.length < countToHide) {
+                let r = Math.floor(Math.random() * word.length);
+                if(word[r] !== ' ' && word[r] !== "'" && word[r] !== "’" && !indices.includes(r)) indices.push(r);
+            }
+            indices.forEach(idx => result[idx] = '_');
+            return result.join('');
+        }
+        function getColoredError(correct) {
+            return `<div class="error-hint"><span class="txt-red">Невірно!</span> <br> <span class="txt-purple">${correct}</span></div>`;
+        }
+
+        // --- НОВИЙ ФУНКЦІОНАЛ: СЛОВНИК ---
+        function openDictionary() {
+            document.getElementById('dictModal').style.display = 'block';
+            renderDictionaryGroups();
+        }
+
+        function renderDictionaryGroups() {
+            const container = document.getElementById('dictGroupsContainer');
+            container.innerHTML = '';
+            const pair = document.getElementById('dictPairSelect').value;
+            activeDictPair = pair;
+            
+            const lines = rawVocabulary.trim().split('\n');
+            const chunkSize = 20;
+            
+            for (let i = 0; i < lines.length; i += chunkSize) {
+                const groupLines = lines.slice(i, i + chunkSize);
+                const groupDiv = document.createElement('div');
+                groupDiv.style.borderBottom = "1px solid #ccc";
+                groupDiv.style.padding = "10px 0";
+                
+                let preview = groupLines.slice(0, 3).map(l => {
+                    let p = l.split(';');
+                    if(pair === 'en-pl') return `${p[0]} - ${p[1]}`;
+                    if(pair === 'en-uk') return `${p[0]} - ${p[2]}`;
+                    return `${p[1]} - ${p[2]}`;
+                }).join('<br>');
+                
+                groupDiv.innerHTML = `<h4 style="margin:0 0 5px 0; color:#2196F3;">Група ${(i/chunkSize)+1}</h4>
+                                      <div style="font-size:12px; color:#555; margin-bottom:8px;">${preview}...</div>`;
+                
+                const btn = document.createElement('button');
+                btn.innerText = "Вивчити";
+                btn.style.fontSize = "12px";
+                btn.style.padding = "6px 12px";
+                btn.onclick = () => loadDictionaryGroup(groupLines, pair);
+                groupDiv.appendChild(btn);
+                
+                container.appendChild(groupDiv);
+            }
+        }
+
+        function loadDictionaryGroup(groupLines, pair) {
+            questions = groupLines.map(line => {
+                const p = line.split(';');
+                let w, t;
+                if(pair === 'en-pl') { w = p[0]; t = p[1]; }
+                else if(pair === 'en-uk') { w = p[0]; t = p[2]; }
+                else if(pair === 'pl-uk') { w = p[1]; t = p[2]; }
+                return { word: w.trim(), translation: t.trim() };
+            });
+            
+            if (pair === 'en-pl' || pair === 'en-uk') { currentLang = 'en'; document.getElementById('langBtn').innerText = 'EN'; }
+            else { currentLang = 'pl'; document.getElementById('langBtn').innerText = 'PL'; }
+            
+            populateVoices();
+            document.querySelectorAll('.mode-btn').forEach(b => b.disabled = false);
+            document.getElementById('dictModal').style.display = 'none';
+            resetAllInternal();
+        }
+        // --- КІНЕЦЬ НОВОГО ФУНКЦІОНАЛУ ---
+    </script>
+</head>
+<body>
+    <div style="width:100%; max-width:500px; display:flex; flex-direction:column; align-items:center;">
+        
+        <div style="display: flex; gap: 8px; margin-bottom: 10px; width: 95%; justify-content: center; align-items: center;">
+            <input type="file" accept=".txt" onchange="loadQuestionsFromTxt(this.files[0])" style="font-size:11px; max-width: 60%;">
+            <button class="mode-btn" onclick="openDictionary()" style="background:#fff3e0; border:1px solid #ffb74d; margin:0; min-width: 90px;">📚 Словник</button>
+        </div>
+        
+        <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 3px; margin-bottom: 8px;">
+            <button class="mode-btn" onclick="setMode('standard')" disabled>Стандарт</button>
+            <button class="mode-btn" onclick="setMode('balloons')" disabled style="background:#e3f2fd; border:1px solid #2196f3;">🎈 Кульки</button>
+            <button class="mode-btn" onclick="setMode('wordBuilder')" disabled>Скласти</button>
+            <button class="mode-btn" onclick="setMode('fillGaps')" disabled>Букви</button>
+            <button class="mode-btn" onclick="setMode('sprint', true)" disabled>Спринт</button>
+            <button class="mode-btn" onclick="setMode('flashcard')" disabled>Картки</button>
+            <button class="mode-btn" onclick="setMode('trueFalse')" disabled>Так/Ні</button>
+        </div>
+
+        <div id="timerDisplay" style="font-weight:bold; color:orange; margin:5px; display:none; font-size:14px;">Час: 60</div>
+        
+        <div style="display: flex; flex-direction: row; width: 100%; justify-content: center; align-items: center; gap: 2px; margin-bottom: 8px;">
+            <button class="ctrl-btn" onclick="resetAllInternal()" style="background:#eee;">Скинути</button>
+            <button class="ctrl-btn" onclick="swapped=!swapped; displayQuestion()" style="background:#e1f5fe;">Swap</button>
+            <button class="ctrl-btn" onclick="toggleInputMode()" style="background:#fff3e0;">Ввід</button>
+            <button class="ctrl-btn" onclick="toggleBuilderMode()" style="background:#f3e5f5; border:1px solid #8e24aa;">Букви</button>
+        </div>
+        
+        <label style="font-size: 12px; margin-bottom: 8px;">
+            <input type="checkbox" id="hintToggle" onchange="displayQuestion()"> Підказка
+        </label>
+
+        <div id="score">✅ 0 | ❌ 0<br><small>Оберіть .txt файл або Словник</small></div>
+        
+        <div id="questionContainer"></div> 
+        
+        <div id="balloonStage"></div>
+
+        <div class="settings-panel">
+            <button class="lang-toggle" onclick="toggleLang()">Мова: <span id="langBtn">PL</span> ⇄</button>
+            <select id="voiceSelect" onchange="selectedVoiceIndex=this.value" style="font-size:11px;"></select>
+            <div style="margin-top:10px;">
+                <label>Швидкість озвучки: <span id="rateVal" class="slider-val">1x</span><input type="range" min="0.5" max="2" value="1" step="0.1" oninput="speechRate=this.value; document.getElementById('rateVal').innerText=this.value+'x'"></label>
+                <label>Швидкість гри: <span id="qRateValue" class="slider-val">3.5с</span><input type="range" min="500" max="15000" value="3500" step="500" oninput="QRate=this.value; document.getElementById('qRateValue').innerText=(this.value/1000).toFixed(1)+'с'"></label>
+            </div>
+        </div>
+    </div>
+
+    <div id="dictModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1000; overflow-y:auto; padding:20px; box-sizing:border-box;">
+        <div style="background:white; border-radius:15px; padding:20px; max-width:600px; margin:0 auto; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+            <h2 style="margin-top:0">📚 Словник</h2>
+            
+            <div style="margin-bottom: 15px;">
+                <label style="font-size: 14px;"><strong>Оберіть мовну пару:</strong></label>
+                <select id="dictPairSelect" onchange="renderDictionaryGroups()" style="width:100%; padding:10px; margin-top:5px; border-radius:8px; border: 1px solid #ccc; font-size: 15px;">
+                    <option value="en-pl">Англійська ⇄ Польська</option>
+                    <option value="en-uk">Англійська ⇄ Українська</option>
+                    <option value="pl-uk">Польська ⇄ Українська</option>
+                </select>
+            </div>
+            
+            <div id="dictGroupsContainer"></div>
+            
+            <button onclick="document.getElementById('dictModal').style.display='none'" style="background:#333; color:white; width:100%; margin-top:20px;">Закрити</button>
+        </div>
+    </div>
+</body>
+</html>
